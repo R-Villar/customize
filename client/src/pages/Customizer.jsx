@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useSnapshot } from "valtio"
-import config from "../config/config"
 import state from "../store"
-import { download, swatch } from "../assets"
-import { downloadCanvasToImage, reader } from "../config/helpers"
+import { reader } from "../config/helpers"
 import { EditorTabs, FilterTabs, DecalTypes } from "../config/constants"
 import { fadeAnimation, slideAnimation } from "../config/motion"
 import { AIPicker, ColorPicker, CustomButton, FilePicker, Tab } from "../components"
@@ -13,7 +11,7 @@ export const Customizer = () => {
 	const snap = useSnapshot(state)
 
 	const [file, setFile] = useState("")
-
+	const [isOpen, setIsOpen] = useState(false)
 	const [prompt, setPrompt] = useState("")
 	const [generatingImg, setGeneratingImg] = useState("")
 	const [activeEditorTab, setActiveEditorTab] = useState("")
@@ -47,7 +45,7 @@ export const Customizer = () => {
 		try {
 			setGeneratingImg(true)
 
-			const response = await fetch("http://localhost:8080/api/v1/dalle", {
+			const response = await fetch(import.meta.env.VITE_BASE_URL, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -84,6 +82,7 @@ export const Customizer = () => {
 				break
 			case "stylishShirt":
 				state.isFullTexture = !activeFilterTab[tabName]
+				break
 			default:
 				state.isLogoTexture = true
 				state.isFullTexture = false
@@ -116,7 +115,14 @@ export const Customizer = () => {
 									<Tab
 										key={tab.name}
 										tab={tab}
-										handleClick={() => setActiveEditorTab(tab.name)}
+										handleClick={() => {
+											setIsOpen(!isOpen)
+											if (!isOpen) {
+												setActiveEditorTab(tab.name)
+											} else {
+												setActiveEditorTab("")
+											}
+										}}
 									/>
 								))}
 								{generateTabContent()}
